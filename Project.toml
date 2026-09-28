@@ -1,0 +1,10 @@
+name = "ThresholdFreeClusterEnhancement"
+uuid = "ab421cc8-e01b-5675-99c3-7bb45ba48198"
+authors = ["Benedikt Ehinger <tfce@benediktehinger.de>"]
+version = "0.1.0"
+
+[workspace]
+projects = ["test", "docs"]
+
+[compat]
+julia = "1.10"

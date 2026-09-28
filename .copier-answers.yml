@@ -1,0 +1,43 @@
+# Changes here will be overwritten by Copier
+AddAgentsMd: false
+AddAllcontributors: true
+AddChangelog: true
+AddCitationCFF: false
+AddCodeOfConduct: true
+AddContributionDocs: true
+AddCopierCI: false
+AddDocs: true
+AddDocsCI: true
+AddFormatterAndLinterConfigFiles: true
+AddGitHubPRTemplate: true
+AddGitHubTemplates: true
+AddLintCI: false
+AddLychee: false
+AddMacToCI: false
+AddPrecommit: true
+AddPrecommitUpdateCI: true
+AddTagBotCI: true
+AddTestCI: true
+AddVSCodeRecommendations: false
+AddWinToCI: false
+Authors: Benedikt Ehinger <tfce@benediktehinger.de>
+CheckExplicitImports: false
+CodeOfConductContact: tfce@benediktehinger.de
+ConfigIndentation: 2
+GitHubActionVersionAutoUpdate: dependabot
+JuliaCompatAutoUpdate: dependabot
+JuliaIndentation: 4
+JuliaMinCIVersion: lts
+JuliaMinVersion: '1.10'
+License: MIT
+LicenseCopyrightHolders: Benedikt Ehinger
+MarkdownIndentation: 2
+PackageName: ThresholdFreeClusterEnhancement
+PackageOwner: s-ccs
+PackageUUID: ab421cc8-e01b-5675-99c3-7bb45ba48198
+RunJuliaNightlyOnCI: false
+StrategyConfirmIncluded: true
+StrategyLevel: 1
+StrategyReviewExcluded: false
+TestingStrategy: testitem_cli
+_src_path: /home/agent/.julia/packages/BestieTemplate/MPEqY
