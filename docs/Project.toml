@@ -1,10 +1,11 @@
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
 ThresholdFreeClusterEnhancement = "ab421cc8-e01b-5675-99c3-7bb45ba48198"
 
-[compat]
-Documenter = "1"
-
 [sources]
 ThresholdFreeClusterEnhancement = {path = ".."}
+
+[compat]
+Documenter = "1"
