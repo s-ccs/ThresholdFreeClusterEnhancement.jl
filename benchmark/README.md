@@ -16,6 +16,11 @@ both implementations share.
   `data/<case>.out.python.bin` for the cross-check.
 - `benchmark.jl` — times the Julia `tfce` on the same data and reports the
   maximum absolute difference against the Python output.
+- `perm_benchmark.py` — times the reference's documented sign-flip permutation
+  workflow, writes the observed score map and both p-value maps to
+  `data/<case>.perm.{obs,pfwe,punc}.python.bin` for the cross-check.
+- `perm_benchmark.jl` — times the Julia `permutation_test` on the same data
+  and reports the timing and the cross-check differences.
 
 ## Run
 
@@ -25,6 +30,10 @@ both implementations share.
 python3 generate_data.py
 PYTHONPATH=<reference>/python/src python3 benchmark.py
 julia --project=. benchmark.jl
+
+# permutation test (same reference environment)
+PYTHONPATH=<reference>/python/src python3 perm_benchmark.py
+julia --project=. perm_benchmark.jl
 ```
 
 `E`, `H`, and `two_sided` are the shared defaults (0.5, 2.0, true) on both
@@ -66,6 +75,52 @@ ladders, single channel / single column / all-negative / negative-zero edge
 cases), and on every map of the benchmark data for both `sortalg` values. Seven
 of the 84 are the same map at `nthreads` = 2, 3, 4, 7, 8 and 16, each
 bit-identical to `nthreads = 1`.
+
+## Permutation test
+
+`perm_benchmark.py` and `perm_benchmark.jl` compare the sign-flip permutation
+test end-to-end on the same three data sets (1000 permutations, single-
+threaded, best of 3). The Julia side is one `permutation_test(data, adj;
+nperm = 1000)` call (the default `method = :tail`, single-threaded). The
+Python side runs the reference toolbox's documented one-sample sign-flip
+workflow as-is (its `docs/permutation.md`): per permutation a `fit_signs`
+re-fit of the one-sample *t* map, TFCE over the channel adjacency, the
+documented accumulators (maximum statistic, exact exceedance counts, and the
+"overwrite the weakest, re-sort" upkeep of the top-100 per-element tails),
+then the reference's `gamma_pvalue` / `pareto_pvalue`.
+
+| case   | shape (channels × times × subjects) | Julia `permutation_test` | Python documented workflow | speedup |
+|--------|-------------------------------------|--------------------------|----------------------------|---------|
+| small  | 32 × 128 × 10                       | 0.75 s                   | 4.91 s                     | 6.5×    |
+| medium | 64 × 256 × 20                       | 3.72 s                   | 56.94 s                    | 15.3×   |
+| large  | 128 × 512 × 30                      | 22.46 s                  | 71.85 s                    | 3.2×    |
+
+On the large case the reference's per-permutation library work (signs +
+`fit_signs` + TFCE + max + counts) is ≈10 ms; the other ≈60 ms is the
+documented tail upkeep (a full re-sort of the 100 × 65,536 tail per
+permutation — the reference's own docs note that "the MATLAB toolbox tracks a
+running minimum instead, which is cheaper") plus the final tail-fit pass
+(≈3 ms/perm). The medium case is the most lopsided: the tail upkeep alone
+costs 63 ms/perm there, against 3.7 ms for the whole Julia permutation.
+
+The two sides draw independent sign streams (Julia's `MersenneTwister`,
+numpy's `PCG64`), so the p-value maps are compared within Monte-Carlo noise,
+not bit-for-bit:
+
+- **Observed score map** — deterministic on both sides: max |Δ| =
+  7.6e-6 / 7.6e-6 / 3.8e-6, the float32 output precision, the same as the
+  TFCE comparison above.
+- **`p_fwe`** — the same convention on both sides (Gamma fit to the null of
+  the maximum `|score|`): max |Δ| = 0 / 9.4e-4 / 0.011 — the Gamma fit is
+  robust to which permutations were drawn.
+- **`p_unc`** — the conventions differ: the reference's is sign-conditioned
+  (the upper tail in the direction of the observed sign, uniform on
+  (0, 0.5] under the null), while Julia counts magnitudes on both sides
+  (uniform on (0, 1]); under the exactly symmetric sign-flip null,
+  p_julia ≈ 2·p_python. In the mid-regime where both are well determined
+  (0.01 ≤ p_py ≤ 0.4), max |p_julia − 2·p_py| = 0.116 / 0.123 / 0.125, with
+  a 99th percentile of ≈0.07 — the expected extreme of the counting noise
+  (two independent binomial estimates per element), not a systematic offset.
 
 ## What changed in the simplification
 
