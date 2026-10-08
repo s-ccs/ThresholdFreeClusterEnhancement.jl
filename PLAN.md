@@ -2,6 +2,8 @@
 
 Reference implementation: `~/tfce/tfce` (C core `tfce_maxtree.h`, Python wrapper `core.py`).
 This plan: exact TFCE via max-tree + union-find in Julia, no toolbox dependencies (no SPM, no scipy).
+The max-tree core stays stdlib-only; the sign-flip permutation layer that was deferred below is
+implemented on PermutationTests.jl (the one non-stdlib dependency the package now carries).
 
 ---
 
@@ -9,7 +11,9 @@ This plan: exact TFCE via max-tree + union-find in Julia, no toolbox dependencie
 
 - Target data: EEG/MEG-style `channels × times × subjects`, plus a channel-neighbourhood matrix.
 - Implement **only the explicit-adjacency graph path** (the C "mesh" path): `N = n_channels`, one independent map per (time, subject).
-- Deferred: volume grid path (6/18/26-connectivity), threads, batching, radix sort, permutation GLM, p-value machinery.
+- Deferred: volume grid path (6/18/26-connectivity), batching, radix sort. (Threads and the
+  one-sample sign-flip permutation test with Winkler tail-fit p-values are now implemented:
+  see `src/perm_statistic.jl`, `src/permutation_test.jl`, `src/tails.jl`.)
 - API:
 
 ```julia
@@ -20,7 +24,8 @@ tfce(data::AbstractMatrix, adjacency; …)                        # channels × 
 
 - `adjacency`: channels × channels (0/1 or `Bool`, symmetric) → converted once to CSR-like adjacency lists.
 - Each time point is a separate 1-D map over channels; subjects processed independently.
-- No dependencies beyond stdlib.
+- Dependencies: stdlib plus PermutationTests.jl (sign-flip permutation mechanism only; the
+  max-tree core itself uses no non-stdlib package).
 
 **Future-proofing (time-frequency):** the core stays a *graph* TFCE: flat vector of `N` maps + adjacency lists. The 4-D case (channels × times × freqs × subjects) becomes a thin wrapper: loop freqs, or confluate channel & frequency neighbourhoods by concatenating adjacencies (block-diagonal across freqs if clusters must not cross frequency boundaries; cross-linked rows if they may). Design constraint: don't bake "channels" into the core.
 

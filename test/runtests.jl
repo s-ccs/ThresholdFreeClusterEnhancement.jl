@@ -54,6 +54,8 @@ const TAGS_DATA = Dict( # The tags below are a suggestion
     :slow => "Resource-intensive tests requiring significant time or memory",
 
     # Features (What features are being tested?)
+    :permutation => "Sign-flip permutation test of TFCE score maps",
+    :crosslang => "Parity against the Python reference toolbox",
 )
 
 """

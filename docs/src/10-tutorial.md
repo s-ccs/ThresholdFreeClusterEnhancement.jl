@@ -86,4 +86,8 @@ fig
 
 - `?tfce` for all keyword arguments (`E`, `H`, `two_sided`, `nthreads`,
   `sortalg`), and [`tfce`](@ref) for the full docstring.
+- [`permutation_test`](@ref) for a one-sample sign-flip permutation test of a
+  TFCE score map: the per-element one-sample *t* as the statistic, TFCE as the
+  spatial statistic, returning FWE-corrected and uncorrected p-value maps
+  (channels × times).
 - the [API reference](@ref reference) for everything else.

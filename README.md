@@ -38,6 +38,29 @@ i.e. the two agree to output precision — and the Julia code itself is
 bit-for-bit reproducible across runs and thread counts (84 randomized and
 hand-computed checks).
 
+## Permutation testing
+
+`permutation_test(data, adjacency; …)` runs a one-sample sign-flip permutation
+test of a TFCE score map: for each (channel, time) element the one-sample
+*t*-statistic across subjects is the height and TFCE over the channel
+neighbourhood is the spatial statistic, under the sign-flip scheme of
+[PermutationTests.jl] (the package's one non-stdlib dependency, used for the
+permutation mechanism only). It returns two p-value maps, each
+`channels × times` and two-sided in magnitude:
+
+- `p_fwe` — FWE-corrected, from the null of the *maximum* statistic over all
+  elements;
+- `p_uncorrected` — from each element's own permutation null.
+
+By default (`method = :tail`) the p-values come from the Winkler et al. (2016)
+tail fits ported from the reference toolbox — a Gamma moment-fit for the
+maximum-statistic null and a Generalised Pareto fit (pooled shape) for each
+element's tail — so they resolve below the `1/nperm` counting floor; each fit
+falls back to counting when it degenerates. `method = :count` uses plain
+counting with the `(count + 1) / (nperm + 1)` convention (p-values never
+reach `0`), and `exact = true` enumerates all `2^n` sign patterns (guarded to
+`n ≤ 20` subjects). Reproducible under a fixed `seed`.
+
 ## Contributing
 
 If you want to make contributions of any kind, please first that a look into our [contributing guide directly on GitHub](docs/src/90-contributing.md) or the [contributing page on the website](https://s-ccs.github.io/ThresholdFreeClusterEnhancement.jl/dev/90-contributing/)

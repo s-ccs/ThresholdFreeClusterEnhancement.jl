@@ -1,14 +1,18 @@
 name = "ThresholdFreeClusterEnhancement"
 uuid = "ab421cc8-e01b-5675-99c3-7bb45ba48198"
-authors = ["Benedikt Ehinger <tfce@benediktehinger.de>"]
 version = "0.1.0"
+authors = ["Benedikt Ehinger <tfce@benediktehinger.de>"]
 
 [workspace]
 projects = ["test", "docs", "benchmark"]
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+PermutationTests = "dd25e4c7-56c0-4344-ab7a-80f9379a34f4"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
+PermutationTests = "0.2.2"
 julia = "1.10"
