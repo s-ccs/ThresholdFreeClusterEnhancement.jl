@@ -2,9 +2,7 @@
 
 > [!WARNING]
 > **This package was developed using a large language model (LLM).**
-> The code, documentation, benchmarks, and tests were produced by an AI assistant
-> and have not been thoroughly reviewed by human experts. Use at your own risk and
-> independently verify any results before relying on them for research or practice.
+> The code, documentation, benchmarks, and tests were produced by an LLM, but benchmarked against two existing implementations and screened by the developer.
 
 [![Stable Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://s-ccs.github.io/ThresholdFreeClusterEnhancement.jl/stable)
 [![Development documentation](https://img.shields.io/badge/docs-dev-blue.svg)](https://s-ccs.github.io/ThresholdFreeClusterEnhancement.jl/dev)
