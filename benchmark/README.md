@@ -1,7 +1,8 @@
 # Benchmark
 
 Compares the Julia TFCE against the reference Python/C implementation
-(`~/tfce/tfce/python`) on bit-identical data, both as-is and single-threaded
+([`tfce`](https://github.com/ChristianGaser/tfce), checked out at
+`~/tfce/tfce`) on bit-identical data, both as-is and single-threaded
 (`n_jobs=1` is the Python default; `tfce`'s `nthreads` default of `1` is
 single-threaded too — see [Threading](#threading)). Nothing fancy: three problem
 sizes of sensor-space maps over channels, where every (time, subject) column is
@@ -21,6 +22,12 @@ both implementations share.
   `data/<case>.perm.{obs,pfwe,punc}.python.bin` for the cross-check.
 - `perm_benchmark.jl` — times the Julia `permutation_test` on the same data
   and reports the timing and the cross-check differences.
+- `mne_check.py` — runs MNE-Python's independent TFCE implementation
+  (`permutation_cluster_1samp_test`, exact test) on the shared small case and
+  writes the t-map, TFCE score map and p-value map to
+  `data/small.mne.{tstat,obs,p}.bin`.
+- `mne_check.jl` — runs the Julia transform + exact permutation test on the
+  same data and reports the cross-check numbers against the MNE outputs.
 
 ## Run
 
@@ -34,6 +41,11 @@ julia --project=. benchmark.jl
 # permutation test (same reference environment)
 PYTHONPATH=<reference>/python/src python3 perm_benchmark.py
 julia --project=. perm_benchmark.jl
+
+# MNE cross-check (needs mne in the same environment; see mne_check.py)
+python3 mne_check.py             # step 0.05, ~80 s
+python3 mne_check.py 0.01 fine   # finer step, ~6.5 min
+julia --project=. mne_check.jl
 ```
 
 `E`, `H`, and `two_sided` are the shared defaults (0.5, 2.0, true) on both
@@ -121,6 +133,65 @@ not bit-for-bit:
   (0.01 ≤ p_py ≤ 0.4), max |p_julia − 2·p_py| = 0.116 / 0.123 / 0.125, with
   a 99th percentile of ≈0.07 — the expected extreme of the counting noise
   (two independent binomial estimates per element), not a systematic offset.
+
+## Cross-check against MNE-Python
+
+An independent implementation check: MNE-Python's
+`permutation_cluster_1samp_test` (`mne/stats/cluster_level.py`, pure
+NumPy/SciPy, stepped Riemann-sum TFCE, different authors from both the
+reference C core and this port) is run on the shared small case
+(32 × 128 × 10). The Julia-side convention — every (time, subject) column an
+independent 1-D map under the channel adjacency, with a *global*
+max-statistic FWE null — is reproduced by flattening (channels × times) into
+one vector under a block-diagonal adjacency (one 32 × 32 channel-adjacency
+block per time point). One MNE call then matches the Julia semantics exactly:
+clusters (and TFCE) never span time, H0 stays the maximum over all elements,
+and `tail = 0` gives the same same-sign two-sided clustering and signed
+`scores × sign(t)` output.
+
+Both sides run the exact test, so the comparison carries no Monte-Carlo
+noise: MNE with `n_permutations = "all"` (all 2^(S−1) − 1 = 511 flip patterns
+up to the two-sided symmetry, deterministic) and Julia with
+`permutation_test(data, adj; exact = true, method = :count)` (all 2^10 = 1024
+sign patterns; `:count` to match MNE's count-based `mean(|H0| >= |t|)`
+p-values, not the default tail fits). Shared E = 0.5, H = 2, two-sided;
+MNE's `h_power`/`e_power` defaults match the Julia ones, and MNE multiplies
+each strip by `dh`, so its scores are on the same scale as the exact
+max-tree integral.
+
+| metric | step 0.05 | step 0.01 |
+|--------|-----------|-----------|
+| max \|Δt\| (height map; scipy vs the Julia one-sample t) | 1.8e-15 | 1.8e-15 |
+| max \|ΔTFCE\| (relative to max score) | 0.51 (0.0077) | 0.108 (0.0016) |
+| Spearman ρ of the score maps | 0.99954 | — |
+| max \|Δp_fwe\| (exact test on both sides) | 0.018 | 0.002 |
+
+The score difference shrinks ∝ step (a 5× smaller step gives a 4.7× smaller
+difference): it is MNE's Riemann-sum discretization converging onto the exact
+max-tree integral (at the top of the map the stepped sum misses the final
+partial strip, hence the ~`step`/`h_max` relative error). The p-values agree
+to the counting resolution of the exact test (the 1/511 floor ≈ 0.002); at
+step 0.05 near-ties in the stepped statistic shift counts by a few
+permutations (max |Δ| = 0.018, Spearman ρ = 1.0), and at step 0.01 they
+converge onto the floor. The sanity check passes: the Julia exact TFCE and
+its permutation test reproduce an independent implementation's results.
+
+Timing, same machine, sequential on both sides (MNE steps a threshold sweep
+with a fresh connected-components call per threshold in Python; the Julia
+max-tree integrates exactly in one compiled pass). **Per one TFCE** is the
+transform of a single 4096-element score map (channels × times); **full
+permutation** is the whole exact test of the small case
+(32 ch × 128 t × 10 subj):
+
+| runtime | Julia (exact) | MNE step 0.05 | MNE step 0.01 |
+|---|---|---|---|
+| per one TFCE (one 4096-element map) | 0.37 ms | 159 ms (rel 0.0077) | 760 ms (rel 0.0016) |
+| full permutation (exact test) | 0.81 s (1024 patterns) | 77.8 s (512 patterns) | 386.8 s (512 patterns) |
+
+Julia is exact at any setting; MNE's numbers carry the discretization error
+of its step, so the step-0.01 column is the like-for-like accuracy point
+(~2050× on the transform, ~480× on the exact test; Julia enumerates 1024
+patterns against MNE's 512, so per pattern it is ~960×).
 
 ## What changed in the simplification
 
