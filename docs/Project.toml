@@ -3,6 +3,9 @@ CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 LiveServer = "16fef848-5104-11e9-1b77-fb7a48bbb589"
 ThresholdFreeClusterEnhancement = "ab421cc8-e01b-5675-99c3-7bb45ba48198"
+TopoPlots = "2bdbdf9c-dbd8-403f-947b-1a4e0dd41a7a"
+UnfoldMakie = "69a5ce3b-64fb-4f22-ae69-36dd4416af2a"
+UnfoldSim = "ed8ae6d2-84d3-44c6-ab46-0baf21700804"
 
 [sources]
 ThresholdFreeClusterEnhancement = {path = ".."}
