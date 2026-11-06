@@ -1,3 +1,7 @@
+default_language_version:
+  # nodeenv 1.11.0 resolves the default to the newest dist-index entry, which is
+  # currently the pre-release v27.0.0-alpha.0.0.0 and crashes parse_version
+  node: '26.13.0'
 repos:
   - repo: local
     hooks:
